@@ -28,6 +28,8 @@ async function run() {
     const userCollection = client.db("tourismo").collection("users");
     const packagesCollection = client.db("tourismo").collection("packages");
     const bookingCollection = client.db("tourismo").collection("bookings");
+    const wishlistCollection = client.db("tourismo").collection("wishlists");
+    const reviewCollection = client.db("tourismo").collection("reviews");
     const guideProfileCollection = client
       .db("tourismo")
       .collection("guide_profile");
@@ -111,6 +113,13 @@ async function run() {
 
     app.get("/packages", async (req, res) => {
       const result = await packagesCollection.find().toArray();
+      res.send(result);
+    });
+
+    app.get("/package/:tourType", async (req, res) => {
+      const tourType = req.params.tourType;
+      const query = { tourType: tourType };
+      const result = await packagesCollection.find(query).toArray();
       res.send(result);
     });
 
@@ -202,6 +211,52 @@ async function run() {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await bookingCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    //  wishlist
+
+    app.post("/wishlist", async (req, res) => {
+      const wishlist = req.body;
+      const query = {
+        tripId: wishlist.tripId,
+        email: wishlist.email,
+      };
+      const existingWishlist = await wishlistCollection.findOne(query);
+      if (existingWishlist) {
+        return res.send({
+          message: "Wishlist already added",
+          insertedId: null,
+        });
+      }
+      const result = await wishlistCollection.insertOne(wishlist);
+      res.send(result);
+    });
+
+    app.get("/wishlist/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const result = await wishlistCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    app.delete("/wishlist/delete/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await wishlistCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    // reviews
+
+    app.get("/reviews", async (req, res) => {
+      const result = await reviewCollection.find().toArray();
+      res.send(result);
+    });
+
+    app.post("/reviews", async (req, res) => {
+      const review = req.body;
+      const result = await reviewCollection.insertOne(review);
       res.send(result);
     });
 
