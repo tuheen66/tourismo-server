@@ -44,12 +44,12 @@ async function run() {
     });
 
     const verifyToken = (req, res, next) => {
-      console.log("inside verify token", req.headers);
+      // console.log("inside verify token", req.headers);
       if (!req.headers.authorization) {
         return res.status(401).send({ message: "forbidden access" });
       }
       const token = req.headers.authorization.split(" ")[1];
-      jwt.verify (token, process.nextTick.ACCESS_TOKEN_SECRET, (err, decoded)=>{
+      jwt.verify (token, process.env.ACCESS_TOKEN_SECRET, (err, decoded)=>{
         if(err){
           return res.status(401).send({message: " forbidden access"})
         }
@@ -121,7 +121,10 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/users/:email", async (req, res) => {
+    // to get user data for booking a tour / to get my profile info
+
+    app.get("/user/:email", async (req, res) => {
+
       const query = { email: req.params.email };
       const result = await userCollection.findOne(query);
       res.send(result);
@@ -129,10 +132,8 @@ async function run() {
 
     app.get("/users/admin/:email", async (req, res) => {
       const email = req.params.email;
-
       const query = { email: email };
-      console.log(query);
-
+     
       const user = await userCollection.findOne(query);
 
       let admin = false;
