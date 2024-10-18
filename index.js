@@ -7,7 +7,11 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 // middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: ["http://localhost:5173", "https://tourismo-53356.web.app"],
+  })
+);
 app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.1gnzeig.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
@@ -24,7 +28,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
 
     const userCollection = client.db("tourismo").collection("users");
     const packagesCollection = client.db("tourismo").collection("packages");
@@ -49,15 +53,13 @@ async function run() {
         return res.status(401).send({ message: "forbidden access" });
       }
       const token = req.headers.authorization.split(" ")[1];
-      jwt.verify (token, process.env.ACCESS_TOKEN_SECRET, (err, decoded)=>{
-        if(err){
-          return res.status(401).send({message: " forbidden access"})
+      jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        if (err) {
+          return res.status(401).send({ message: " forbidden access" });
         }
-        req.decoded=decoded;
-        next()
-      })
-      
-      
+        req.decoded = decoded;
+        next();
+      });
     };
 
     app.get("/user", verifyToken, async (req, res) => {
@@ -124,7 +126,6 @@ async function run() {
     // to get user data for booking a tour / to get my profile info
 
     app.get("/user/:email", async (req, res) => {
-
       const query = { email: req.params.email };
       const result = await userCollection.findOne(query);
       res.send(result);
@@ -133,7 +134,7 @@ async function run() {
     app.get("/users/admin/:email", async (req, res) => {
       const email = req.params.email;
       const query = { email: email };
-     
+
       const user = await userCollection.findOne(query);
 
       let admin = false;
@@ -294,10 +295,10 @@ async function run() {
     });
 
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log(
-      "Pinged your deployment. You successfully connected to MongoDB!"
-    );
+    // await client.db("admin").command({ ping: 1 });
+    // console.log(
+    //   "Pinged your deployment. You successfully connected to MongoDB!"
+    // );
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
